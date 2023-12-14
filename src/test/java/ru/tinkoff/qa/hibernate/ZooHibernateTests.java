@@ -19,14 +19,15 @@ public class ZooHibernateTests {
     }
 
     @BeforeEach
-    void setupThis() {
+    private void setupThis() {
         sessionFactory = HibernateSessionFactoryCreator.createSessionFactory();
         session = sessionFactory.openSession();
         session.beginTransaction();
     }
 
-    @AfterAll
-    static void tear() {
+    @AfterEach
+    private void tear() {
+        session.close();
         sessionFactory.close();
     }
 
