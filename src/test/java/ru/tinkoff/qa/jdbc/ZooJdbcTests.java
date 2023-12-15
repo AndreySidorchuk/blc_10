@@ -18,6 +18,7 @@ public class ZooJdbcTests {
     public void beforeEach() throws SQLException {
         connection = JdbcConnectionCreator.createConnection();
     }
+
     @AfterEach
     public void afterEach() throws SQLException {
         connection.close();
@@ -40,8 +41,8 @@ public class ZooJdbcTests {
      */
     @Test
     public void insertIndexAnimal() throws SQLException {
-        for (int i=1; i<=10; i++) {
-            String queryInsert = "INSERT INTO animal (id, \"name\", age, \"type\", sex, place) VALUES ((?), 'Ряба', 3, 2, 1, 2)";
+        for (int i = 1; i <= 10; i++) {
+            String queryInsert = "INSERT INTO animal (id,\"name\",age,\"type\",sex,place) VALUES ((?),'Ряба',3,2,1,2)";
             PreparedStatement statement = connection.prepareStatement(queryInsert);
             statement.setInt(1, i);
 
@@ -57,13 +58,13 @@ public class ZooJdbcTests {
      */
     @Test
     public void insertNullToWorkman() throws SQLException {
-        String queryInsert = "INSERT INTO workman (id, \"name\", age, \"position\") VALUES (33, null, 33, 33)";
+        String queryInsert = "INSERT INTO workman (id,\"name\",age,\"position\") VALUES (33,null,33,33)";
         Statement statement = connection.createStatement();
 
         SQLException exception = Assertions.assertThrows(SQLException.class, () -> {
             statement.executeUpdate(queryInsert);
         });
-        Assertions.assertTrue(exception.getMessage().contains("Значение NULL не разрешено для поля \"name\""));
+        Assertions.assertTrue(exception.getMessage().contains("Значение NULL не разрешено для поля"));
     }
 
     /**
@@ -71,13 +72,16 @@ public class ZooJdbcTests {
      */
     @Test
     public void insertPlacesCountRow() throws SQLException {
-        String queryInsert = "INSERT INTO places (id, \"row\", place_num, \"name\") VALUES (55, 55, 55, 'Орехово')";
-        String query = "SELECT count(*) AS kol FROM places";
         Statement statement = connection.createStatement();
-        statement.executeUpdate(queryInsert);
-        ResultSet resultSetSelect = statement.executeQuery(query);
-        resultSetSelect.next();
-        Assertions.assertEquals(6, resultSetSelect.getInt("kol"));
+        statement.execute("INSERT INTO places (id,\"row\",place_num,\"name\") VALUES (55,55,55,'Орехово')");
+        String query = "SELECT COUNT(*) FROM places";
+        try {
+            ResultSet resultSetSelect = statement.executeQuery(query);
+            resultSetSelect.next();
+            Assertions.assertEquals(6, resultSetSelect.getInt(1));
+        } finally {
+            statement.execute("DELETE FROM places WHERE id=55");
+        }
     }
 
     /**

@@ -94,9 +94,14 @@ public class ZooHibernateTests {
         places.setPlaceNum(2);
         places.setName("Орехово");
         session.save(places);
-        session.getTransaction().commit();
-        List<Integer> listPlaces = session.createQuery("SELECT p.id FROM Places p", Integer.class).getResultList();
-        Assertions.assertEquals(6, listPlaces.size());
+        Places deletePl = places;
+        try {
+            List<Integer> listPlaces = session.createQuery("SELECT p.id FROM Places p", Integer.class).getResultList();
+            Assertions.assertEquals(6, listPlaces.size());
+        } finally {
+            session.delete(deletePl);
+            session.getTransaction().commit();
+        }
     }
 
     /**
